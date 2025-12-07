@@ -22,7 +22,7 @@
     <meta name="description" content="babyheap检查发现无pie，并且程序中有后门函数magic，通过反编译发现存在UAF漏洞，可以控制函数指针跳转到magic函数得到shell，具体如下  在add_note里，用户可以控制分配大小，并且前面分配16字节用于存储指针print_note_content。  （图一）  （图二） del_note这里（图一），free了之前分配的块，但是指针依然指向之前申请的堆块，于是我们可以覆">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CTF题解: babyheap">
-<meta property="og:url" content="http://example.com/2025/12/04/2025-12-04-babyheap/index.html">
+<meta property="og:url" content="http://example.com/2025/12/04/2025-12-07-babyheap/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="babyheap检查发现无pie，并且程序中有后门函数magic，通过反编译发现存在UAF漏洞，可以控制函数指针跳转到magic函数得到shell，具体如下  在add_note里，用户可以控制分配大小，并且前面分配16字节用于存储指针print_note_content。  （图一）  （图二） del_note这里（图一），free了之前分配的块，但是指针依然指向之前申请的堆块，于是我们可以覆">
 <meta property="og:locale" content="en_US">
@@ -40,10 +40,10 @@
 <meta name="twitter:image" content="http://example.com/images/babyheap/checksec.png">
 
 
-<link rel="canonical" href="http://example.com/2025/12/04/2025-12-04-babyheap/">
+<link rel="canonical" href="http://example.com/2025/12/04/2025-12-07-babyheap/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/12/04/2025-12-04-babyheap/","path":"2025/12/04/2025-12-04-babyheap/","title":"CTF题解: babyheap"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/12/04/2025-12-07-babyheap/","path":"2025/12/04/2025-12-07-babyheap/","title":"CTF题解: babyheap"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>CTF题解: babyheap | Hexo</title>
@@ -141,16 +141,16 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-count">2</span>
         <span class="site-state-item-name">categories</span>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -177,7 +177,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/04/2025-12-04-babyheap/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/04/2025-12-07-babyheap/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -266,6 +266,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2025/12/05/2025-12-07-fmt/" rel="next" title="CTF题解：fmt">
+                  CTF题解：fmt <i class="fa fa-angle-right"></i>
+                </a>
             </div>
           </div>
     </footer>
