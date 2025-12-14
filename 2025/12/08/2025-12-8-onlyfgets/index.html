@@ -26,19 +26,19 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="onlyfgets一、程序分析   程序只有NX保护，且有简单栈溢出。但是，查看程序没有system等可以直接获得shell的gadget 有signal和alarm，根据提示gadget： 120x00000000004010ae : add bl, dh ; endbr64 ; ret0x000000000040114c : add dword ptr [rbp - 0x3d], ebx ;">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/image/onlyfgets/checksec.png">
-<meta property="og:image" content="http://example.com/image/onlyfgets/main.png">
-<meta property="og:image" content="http://example.com/image/onlyfgets/222.png">
-<meta property="og:image" content="http://example.com/image/onlyfgets/step1.png">
-<meta property="og:image" content="http://example.com/image/onlyfgets/step11.png">
+<meta property="og:image" content="http://example.com/images/onlyfgets/checksec.png">
+<meta property="og:image" content="http://example.com/images/onlyfgets/main.png">
+<meta property="og:image" content="http://example.com/images/onlyfgets/222.png">
+<meta property="og:image" content="http://example.com/images/onlyfgets/step1.png">
+<meta property="og:image" content="http://example.com/images/onlyfgets/step11.png">
 <meta property="article:published_time" content="2025-12-08T14:04:00.000Z">
-<meta property="article:modified_time" content="2025-12-08T14:52:12.232Z">
+<meta property="article:modified_time" content="2025-12-14T11:52:23.969Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="ctf">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="stack-overflow">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/image/onlyfgets/checksec.png">
+<meta name="twitter:image" content="http://example.com/images/onlyfgets/checksec.png">
 
 
 <link rel="canonical" href="http://example.com/2025/12/08/2025-12-8-onlyfgets/">
@@ -206,9 +206,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2025-12-08 22:04:00 / Modified: 22:52:12" itemprop="dateCreated datePublished" datetime="2025-12-08T22:04:00+08:00">2025-12-08</time>
+      <time title="Created: 2025-12-08 22:04:00" itemprop="dateCreated datePublished" datetime="2025-12-08T22:04:00+08:00">2025-12-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-14 19:52:23" itemprop="dateModified" datetime="2025-12-14T19:52:23+08:00">2025-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -229,9 +235,9 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="onlyfgets"><a href="#onlyfgets" class="headerlink" title="onlyfgets"></a>onlyfgets</h1><h2 id="一、程序分析"><a href="#一、程序分析" class="headerlink" title="一、程序分析"></a>一、程序分析</h2><p><img src="/image/onlyfgets/checksec.png" alt="image-20251207102811670"></p>
-<p><img src="/image/onlyfgets/main.png" alt="image-20251207102832960"></p>
-<p><img src="/image/onlyfgets/222.png" alt="image-20251207102938104"></p>
+    <div class="post-body" itemprop="articleBody"><h1 id="onlyfgets"><a href="#onlyfgets" class="headerlink" title="onlyfgets"></a>onlyfgets</h1><h2 id="一、程序分析"><a href="#一、程序分析" class="headerlink" title="一、程序分析"></a>一、程序分析</h2><p><img src="/images/onlyfgets/checksec.png" alt="image-20251207102811670"></p>
+<p><img src="/images/onlyfgets/main.png" alt="image-20251207102832960"></p>
+<p><img src="/images/onlyfgets/222.png" alt="image-20251207102938104"></p>
 <p>程序只有NX保护，且有简单栈溢出。但是，查看程序没有system等可以直接获得shell的gadget</p>
 <p>有signal和alarm，根据提示gadget：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x00000000004010ae : add bl, dh ; endbr64 ; ret</span><br><span class="line">0x000000000040114c : add dword ptr [rbp - 0x3d], ebx ; nop ; ret</span><br></pre></td></tr></table></figure>
@@ -254,7 +260,7 @@
 
 <p><strong>假设我们可以控制 rbp 和 ebx，就可以向任意地址 (rbp - 0x3d) 加任意值 (ebx)</strong></p>
 <h2 id="二、调试过程"><a href="#二、调试过程" class="headerlink" title="二、调试过程"></a>二、调试过程</h2><h3 id="（一）-原语利用"><a href="#（一）-原语利用" class="headerlink" title="（一） 原语利用"></a>（一） 原语利用</h3><h4 id="step1"><a href="#step1" class="headerlink" title="step1"></a>step1</h4><p>根据上述分析，我们尝试控制 rbp 和 ebx，查一下 pop 指令：</p>
-<p><img src="/image/onlyfgets/step1.png" alt="image-20251208144151439"></p>
+<p><img src="/images/onlyfgets/step1.png" alt="image-20251208144151439"></p>
 <p>可以看到，我们有了gadget</p>
 <ul>
 <li>0x000000000040114d : pop rbp ; ret</li>
@@ -301,7 +307,7 @@
 </ol>
 </blockquote>
 <p>运行结果：</p>
-<p><img src="/image/onlyfgets/step11.png" alt="image-20251208150004782"></p>
+<p><img src="/images/onlyfgets/step11.png" alt="image-20251208150004782"></p>
 <p>可以看到计算出 $1 (即dh) &#x3D; 32 (0x20)。或者直接看下面RDX显示的0xfbad208b</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0x00000000fbad208b</span><br><span class="line">          ↑↑</span><br><span class="line">高位字节   低位字节</span><br><span class="line"></span><br><span class="line">RDX（64位）：0x00000000fbad208b</span><br><span class="line">EDX（32位）：0xfbad208b  </span><br><span class="line">DX（16位）：0x208b</span><br><span class="line">DH（高8位）：0x20</span><br><span class="line">DL（低8位）：0x8b</span><br></pre></td></tr></table></figure>
 
@@ -335,8 +341,8 @@
     <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/pwn/" rel="tag"># pwn</a>
-              <a href="/tags/stack-overflow/" rel="tag"># stack-overflow</a>
               <a href="/tags/ctf/" rel="tag"># ctf</a>
+              <a href="/tags/stack-overflow/" rel="tag"># stack-overflow</a>
           </div>
 
         
