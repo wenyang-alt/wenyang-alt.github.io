@@ -193,7 +193,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2025-12-14 19:29:00 / Modified: 19:54:45" itemprop="dateCreated datePublished" datetime="2025-12-14T19:29:00+08:00">2025-12-14</time>
+      <time title="Created: 2025-12-14 19:29:00 / Modified: 19:59:09" itemprop="dateCreated datePublished" datetime="2025-12-14T19:29:00+08:00">2025-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -215,15 +215,15 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="pwn4（Format-String）"><a href="#pwn4（Format-String）" class="headerlink" title="pwn4（Format String）"></a>pwn4（Format String）</h1><h2 id="一、程序分析"><a href="#一、程序分析" class="headerlink" title="一、程序分析"></a>一、程序分析</h2><p>![image-20251214104847251](&#x2F;images&#x2F;25-12-14-pwn4(Format String)&#x2F;checksec.png)</p>
-<p>![image-20251214105053214](&#x2F;images&#x2F;25-12-14-pwn4(Format String)&#x2F;vuln.png)</p>
-<p>![image-20251214194047129](&#x2F;images&#x2F;25-12-14-pwn4(Format String)&#x2F;backdoor.png)</p>
+          <h1 id="pwn4（Format-String）"><a href="#pwn4（Format-String）" class="headerlink" title="pwn4（Format String）"></a>pwn4（Format String）</h1><h2 id="一、程序分析"><a href="#一、程序分析" class="headerlink" title="一、程序分析"></a>一、程序分析</h2><p>![image-20251214104847251](images&#x2F;25-12-14-pwn4(Format String)&#x2F;checksec.png)</p>
+<p>![image-20251214105053214](images&#x2F;25-12-14-pwn4(Format String)&#x2F;vuln.png)</p>
+<p>![image-20251214194047129](images&#x2F;25-12-14-pwn4(Format String)&#x2F;backdoor.png)</p>
 <p>有三次输入机会，向 buf 输入256字节，并且 printf 将 buf 当作参数，明显格式化字符串漏洞。因为没有 pie，尝试将返回地址修改为后门函数</p>
 <h2 id="二、调试过程"><a href="#二、调试过程" class="headerlink" title="二、调试过程"></a>二、调试过程</h2><p>在第一次输入时打断</p>
-<p>![image-20251214105559934](&#x2F;images&#x2F;25-12-14-pwn4(Format String)&#x2F;stack.png)</p>
+<p>![image-20251214105559934](images&#x2F;25-12-14-pwn4(Format String)&#x2F;stack.png)</p>
 <p>可以看到返回地址为 0x4012ba</p>
 <p>输入多个 %p 查看</p>
-<p>![屏幕截图 2025-12-14 105725](&#x2F;images&#x2F;25-12-14-pwn4(Format String)&#x2F;%p.png)</p>
+<p>![屏幕截图 2025-12-14 105725](images&#x2F;25-12-14-pwn4(Format String)&#x2F;%p.png)</p>
 <p>第九个参数就是返回地址，我们需要通过 %c 和 %n 把这里修改为backdoor 地址 0x401205，并且只需要修改最低字节就可以</p>
 <p>因为 %n 是向对应地址写入，我们希望向 0x4012ba 对应的栈地址写入，但是通过泄露的数据可以看到，没有指向 0x4012ba 的地址0x7fffffffde18。</p>
 <p>再观察一下可以发现，我们能够修改 rbp 指向的值 0x7fffffffde20，将其最低字节覆盖为 0x18，这样就可以让 0x7fffffffde18出现在栈上，</p>
