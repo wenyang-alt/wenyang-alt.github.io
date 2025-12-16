@@ -22,7 +22,7 @@
     <meta name="description" content="Shellcode（Decoder）一、程序分析 checksec保护几乎全开，来看反编译：   程序将 DAT_114514000 地址处的数据强制转换为函数指针并执行。现在问题在于，这里只有40字节布置shellcode，不知道这段区域是否可写可执行，以及filter函数过滤了什么。 下面再分析一下：   OK，看到 0x114514000到0x114515000处可写可执行，但是 **fil">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CTF题解：shellcode">
-<meta property="og:url" content="http://example.com/2025/12/09/2025-12-09-Shellcode/index.html">
+<meta property="og:url" content="http://example.com/2025/12/09/2025-12-09-week1-Shellcode/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Shellcode（Decoder）一、程序分析 checksec保护几乎全开，来看反编译：   程序将 DAT_114514000 地址处的数据强制转换为函数指针并执行。现在问题在于，这里只有40字节布置shellcode，不知道这段区域是否可写可执行，以及filter函数过滤了什么。 下面再分析一下：   OK，看到 0x114514000到0x114515000处可写可执行，但是 **fil">
 <meta property="og:locale" content="en_US">
@@ -42,10 +42,10 @@
 <meta name="twitter:image" content="http://example.com/images/shellcode/checksec.png">
 
 
-<link rel="canonical" href="http://example.com/2025/12/09/2025-12-09-Shellcode/">
+<link rel="canonical" href="http://example.com/2025/12/09/2025-12-09-week1-Shellcode/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/12/09/2025-12-09-Shellcode/","path":"2025/12/09/2025-12-09-Shellcode/","title":"CTF题解：shellcode"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/12/09/2025-12-09-week1-Shellcode/","path":"2025/12/09/2025-12-09-week1-Shellcode/","title":"CTF题解：shellcode"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>CTF题解：shellcode | Hexo</title>
@@ -179,7 +179,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/09/2025-12-09-Shellcode/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/09/2025-12-09-week1-Shellcode/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -277,7 +277,7 @@
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/12/14/2025-12-14-pwn4%EF%BC%88Format%20String%EF%BC%89/" rel="next" title="CTF题解：Format String">
+                <a href="/2025/12/14/2025-12-14-week1-Format%20String/" rel="next" title="CTF题解：Format String">
                   CTF题解：Format String <i class="fa fa-angle-right"></i>
                 </a>
             </div>
